@@ -8,23 +8,41 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const { setJwtToken } = useOutletContext();
     const { setAlertClassName } = useOutletContext();
-    const { setAlertMessage } = useOutletContext();   
+    const { setAlertMessage } = useOutletContext();
 
     const navigate = useNavigate();
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        if (email === "admin@example.com") {
-            setJwtToken("abc");
-            setAlertClassName("d-none");
-            setAlertMessage("");
-            navigate("/");
-        } else {
-            setAlertClassName("alert-danger");
-            setAlertMessage("Invalid credentials");
+        //build the request payload
+        const payload = { email: email, password: password };
+
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload)
         }
 
+        fetch(`${import.meta.env.VITE_API_URL}/authenticate`, requestOptions)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.error) {
+                    setAlertClassName("alert-danger");
+                    setAlertMessage(data.message);
+                } else {
+                    setJwtToken(data.access_token);
+                    setAlertClassName("d-none");
+                    setAlertMessage("");
+                    navigate("/");
+                }
+            }).catch((error) => {
+                setAlertClassName("alert-danger");
+                setAlertMessage(error);
+            });
     }
 
     return (

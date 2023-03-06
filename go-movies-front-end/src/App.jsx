@@ -1,18 +1,56 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import Alert from './components/Alert';
+import './globalStyle/globalStyle.css'
 
 function App() {
 
   const [jwtToken, setJwtToken] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [alertClassName, setAlertClassName] = useState("d-none");
+  const [ticking, setTicking] = useState(false);
+  const [ticketInterval, setTicketInterval] = useState();
 
   const navigate = useNavigate();
 
   const logOut = () => {
-    setJwtToken("");
+    const requestOptions = {
+      method: "GET",
+      credentials: "include"
+    }
+    fetch(`${import.meta.env.VITE_API_URL}/logout`, requestOptions)
+      .catch(error => console.log("error logging out", error))
+      .finally(() => { setJwtToken("") });
     navigate("login");
+  }
+
+  useEffect(() => {
+    if (jwtToken === "") {
+      const requestOptions = {
+        method: "GET",
+        credentials: "include",
+      }
+      fetch(`${import.meta.env.VITE_API_URL}/refresh`, requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.access_token) {
+            setJwtToken(data.access_token);
+          }
+        }).catch((error) => console.log("user is not logged in"));
+    }
+  }, [jwtToken])
+
+  const toggleRefresh = () => {
+    console.log("clicked");
+
+    if (!ticking) {
+      const i = setInterval(() => { }, 1000)
+      setTicketInterval(i);
+    } else {
+      setTicketInterval(null);
+      clearInterval(ticketInterval);
+    }
+
   }
 
   return (

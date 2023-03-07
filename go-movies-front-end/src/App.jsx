@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import Alert from './components/Alert';
 import './globalStyle/globalStyle.css'
@@ -8,7 +8,6 @@ function App() {
   const [jwtToken, setJwtToken] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [alertClassName, setAlertClassName] = useState("d-none");
-  const [ticking, setTicking] = useState(false);
   const [ticketInterval, setTicketInterval] = useState();
 
   const navigate = useNavigate();
@@ -20,38 +19,59 @@ function App() {
     }
     fetch(`${import.meta.env.VITE_API_URL}/logout`, requestOptions)
       .catch(error => console.log("error logging out", error))
-      .finally(() => { setJwtToken("") });
+      .finally(() => {
+        setJwtToken("");
+        toggleRefresh(false);
+      });
     navigate("login");
   }
 
-  useEffect(() => {
-    if (jwtToken === "") {
-      const requestOptions = {
-        method: "GET",
-        credentials: "include",
-      }
-      fetch(`${import.meta.env.VITE_API_URL}/refresh`, requestOptions)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.access_token) {
-            setJwtToken(data.access_token);
+  const toggleRefresh = useCallback((status) => {
+    if (status) {
+      const i = setInterval(() => {
+        const requestOptions = {
+          method: 'GET',
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
           }
-        }).catch((error) => console.log("user is not logged in"));
-    }
-  }, [jwtToken])
-
-  const toggleRefresh = () => {
-    console.log("clicked");
-
-    if (!ticking) {
-      const i = setInterval(() => { }, 1000)
+        }
+        console.log(requestOptions);
+        fetch(`${import.meta.env.VITE_API_URL}/refresh`, requestOptions)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.access_token) {
+              setJwtToken(data.access_token);
+            }
+          }).catch((error) => console.log("user is not logged in"));
+      }, 600000)
       setTicketInterval(i);
     } else {
       setTicketInterval(null);
       clearInterval(ticketInterval);
     }
 
-  }
+  }, [ticketInterval]);
+
+  useEffect(() => {
+    if (jwtToken === "") {
+      const requestOptions = {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+      fetch(`${import.meta.env.VITE_API_URL}/refresh`, requestOptions)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.access_token) {
+            setJwtToken(data.access_token);
+            toggleRefresh(true);
+          }
+        }).catch((error) => console.log("user is not logged in"));
+    }
+  }, [jwtToken, toggleRefresh])
 
   return (
     <div className="container">
@@ -84,7 +104,7 @@ function App() {
         </div>
         <div className="col-md-10">
           <Alert message={alertMessage} className={alertClassName} />
-          <Outlet context={{ jwtToken, setJwtToken, setAlertClassName, setAlertMessage }} />
+          <Outlet context={{ jwtToken, setJwtToken, setAlertClassName, setAlertMessage, toggleRefresh }} />
         </div>
       </div>
     </div >

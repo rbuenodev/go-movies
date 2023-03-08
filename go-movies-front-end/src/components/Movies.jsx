@@ -6,13 +6,14 @@ const Movies = () => {
     const [movies, setMovies] = useState([]);
 
     useEffect(() => {
+
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
         const requestOptions = {
             method: "GET",
             headers: headers,
         }
-        fetch(`http://localhost:3336/movies`, requestOptions)
+        fetch(`${import.meta.env.VITE_API_URL}/movies`, requestOptions)
             .then((response) => response.json())
             .then((data) => { setMovies(data); })
             .catch(err => { console.log(err) });

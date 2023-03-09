@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import React, { forwardRef } from "react";
 
 const Input = forwardRef((props, ref) => {
     return (<div className="mb-3">

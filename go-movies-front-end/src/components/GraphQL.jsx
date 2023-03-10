@@ -1,7 +1,7 @@
 
 
 const GraphQL = () => {
-    return (<div className="text-center">
+    return (<div>
         <h2>GraphQL</h2>
         <hr />
     </div>)

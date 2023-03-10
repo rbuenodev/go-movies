@@ -1,35 +1,39 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
+const OneGenre = () => {
+    const location = useLocation();
+    const { genreName } = location.state;
 
-const ManageCatalogue = () => {
     const [movies, setMovies] = useState([]);
-    const { jwtToken } = useOutletContext();
-    const navigate = useNavigate();
+
+    const { id } = useParams();
 
     useEffect(() => {
-        if (jwtToken === "") {
-            navigate("/login");
-            return
-        }
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
-        headers.append("Authorization", "Bearer " + jwtToken);
         const requestOptions = {
             method: "GET",
-            headers: headers,
+            headers: headers
         }
-        fetch(`${import.meta.env.VITE_API_URL}/admin/movies`, requestOptions)
+        fetch(`${import.meta.env.VITE_API_URL}/movies/genres/${id}`, requestOptions)
             .then((response) => response.json())
-            .then((data) => { setMovies(data); })
+            .then((data) => {
+                if (data.error) {
+                    console.log(data.error);
+                    return;
+                }
+                setMovies(data);
+            })
             .catch(err => { console.log(err) });
-    }, [navigate, jwtToken]);
+
+    }, [id]);
 
 
     return (<div>
-        <h2>Manage Catalogue</h2>
+        <h2>Genre:{genreName}</h2>
         <hr />
-        <table className="table table-stripd table-hover">
+        {movies ? (<table className="table table-stripped table-hover">
             <thead>
                 <tr>
                     <th>Movie</th>
@@ -40,15 +44,15 @@ const ManageCatalogue = () => {
             <tbody>
                 {movies.map((m) => (
                     <tr key={m.id}>
-                        <td><Link to={`/admin/movie/${m.id}`}>{m.title}</Link></td>
+                        <td><Link to={`/movies/${m.id}`}>{m.title}</Link></td>
                         <td>{m.release_date}</td>
                         <td>{m.mpaa_rating}</td>
                     </tr>
                 ))}
             </tbody>
+        </table>) : (<p>No movies in this genre (yet)!</p>)}
 
-        </table>
     </div>)
 }
 
-export default ManageCatalogue;
+export default OneGenre;

@@ -7,7 +7,7 @@ import (
 
 type DatabaseRepo interface {
 	Connection() *sql.DB
-	AllMovies() ([]*models.Movie, error)
+	AllMovies(genre ...int) ([]*models.Movie, error)
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByID(id int) (*models.User, error)
 	OneMovieForEdit(id int) (*models.Movie, []*models.Genre, error)
@@ -16,4 +16,5 @@ type DatabaseRepo interface {
 	InsertMovie(movie models.Movie) (int, error)
 	UpdateMovieGenres(id int, genresIDs []int) error
 	UpdateMovie(movie models.Movie) error
+	DeleteMovie(id int) error
 }
